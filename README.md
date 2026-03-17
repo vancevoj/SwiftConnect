@@ -16,7 +16,7 @@ Lightweight velocity plugin that adds an alias so that instead of typing `/serve
 2. Drop it into your Velocity proxy's `plugins/` folder
 3. Start Velocity and `plugins/swiftconnect/config.yml` will be automatically generated
 4. Edit the config to customize messages, aliases, and permissions
-5. Restart Velocity to apply changes
+5. Use `/swiftconnect reload` to apply changes without restarting
 
 ## Auto-Generated Config
 
@@ -78,13 +78,20 @@ macros:
         message: §7⏳ Initializing connection to §6Skyblock§7...
 ```
 
+## Commands
+
+| Command | Alias | Permission | Description |
+|---------|-------|------------|-------------|
+| `/swiftconnect` | `/sc` | — | Shows plugin version |
+| `/swiftconnect reload` | `/sc reload` | `swiftconnect.reload` | Reloads config and detects new servers |
+
 ## Building from Source
 
 ```bash
 gradle clean build
 ```
 
-The JAR will be at `build/libs/SwiftConnect-1.0.0.jar`.
+The JAR will be at `build/libs/SwiftConnect-1.3.0.jar`.
 
 ## License
 
