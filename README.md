@@ -24,7 +24,7 @@ Instead of typing `/server skyblock`, just type `/skyblock`. That's it.
 
 1. Download `SwiftConnect-1.0.0.jar` from [Releases](../../releases)
 2. Drop it into your Velocity proxy's `plugins/` folder
-3. Start Velocity — a `plugins/swiftconnect/config.yml` will be auto-generated
+3. Start Velocity and `plugins/swiftconnect/config.yml` will be automatically generated
 4. Edit the config to customize messages, aliases, and permissions
 5. Restart Velocity to apply changes
 
