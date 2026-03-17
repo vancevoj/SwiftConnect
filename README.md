@@ -1,14 +1,16 @@
 # SwiftConnect
 
-A lightweight Velocity proxy plugin that automatically creates command aliases for all your registered servers.
+A lightweight Velocity proxy plugin that automatically creates command aliases for all your registered servers — with a fully configurable YAML config.
 
 Instead of typing `/server skyblock`, just type `/skyblock`. That's it.
 
 ## Features
 
-- **Zero configuration** — drop the JAR into your Velocity `plugins/` folder and go
-- **Auto-detection** — reads all servers from your `velocity.toml` and registers aliases
-- **Lightweight** — no config files, no dependencies, no bloat
+- **Auto-detection** — on first run, detects all servers from `velocity.toml` and generates a `config.yml`
+- **Configurable messages** — customize the transfer message for each server with `§` color codes
+- **Aliases** — add shortcut aliases like `/sb` for `/skyblock`, `/h` for `/hub`
+- **Permissions** — optionally lock commands behind permissions
+- **Lightweight** — single JAR, no external dependencies
 
 ## Compatibility
 
@@ -22,33 +24,77 @@ Instead of typing `/server skyblock`, just type `/skyblock`. That's it.
 
 1. Download `SwiftConnect-1.0.0.jar` from [Releases](../../releases)
 2. Drop it into your Velocity proxy's `plugins/` folder
-3. Restart (or start) Velocity
+3. Start Velocity — a `plugins/swiftconnect/config.yml` will be auto-generated
+4. Edit the config to customize messages, aliases, and permissions
+5. Restart Velocity to apply changes
 
-## How It Works
+## Auto-Generated Config
 
-If your `velocity.toml` has these servers:
+On first launch, if your `velocity.toml` has servers `hub`, `survival`, and `skyblock`, the plugin generates:
 
-```toml
-[servers]
-lobby = "127.0.0.1:25566"
-skyblock = "127.0.0.1:25567"
-survival = "127.0.0.1:25568"
+```yaml
+lang: en_US
+macros:
+  hub:
+    description: Transfer player to hub.
+    permission: ''
+    aliases: []
+    actions:
+    - type: transfer
+      options:
+        target: hub
+        message: §7⏳ Initializing connection to §fHub§7...
+  survival:
+    description: Transfer player to survival.
+    permission: ''
+    aliases: []
+    actions:
+    - type: transfer
+      options:
+        target: survival
+        message: §7⏳ Initializing connection to §fSurvival§7...
+  skyblock:
+    description: Transfer player to skyblock.
+    permission: ''
+    aliases: []
+    actions:
+    - type: transfer
+      options:
+        target: skyblock
+        message: §7⏳ Initializing connection to §fSkyblock§7...
 ```
 
-SwiftConnect automatically registers:
-- `/lobby` → connects you to the lobby server
-- `/skyblock` → connects you to the skyblock server
-- `/survival` → connects you to the survival server
+Then you can customize it, e.g. add aliases and colored messages:
 
-No configuration needed.
+```yaml
+macros:
+  hub:
+    description: Transfer player to hub.
+    permission: ''
+    aliases: [lobby, h]
+    actions:
+    - type: transfer
+      options:
+        target: hub
+        message: §7⏳ Initializing connection to §fHub§7...
+  skyblock:
+    description: Transfer player to skyblock.
+    permission: ''
+    aliases: [sb]
+    actions:
+    - type: transfer
+      options:
+        target: skyblock
+        message: §7⏳ Initializing connection to §6Skyblock§7...
+```
 
 ## Building from Source
 
 ```bash
-mvn clean package
+gradle clean build
 ```
 
-The JAR will be at `target/SwiftConnect-1.0.0.jar`.
+The JAR will be at `build/libs/SwiftConnect-1.0.0.jar`.
 
 ## License
 

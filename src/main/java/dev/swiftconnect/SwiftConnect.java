@@ -5,16 +5,21 @@ import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.event.Subscribe;
 import com.velocitypowered.api.event.proxy.ProxyInitializeEvent;
 import com.velocitypowered.api.plugin.Plugin;
+import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
 import com.velocitypowered.api.proxy.server.RegisteredServer;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.tree.LiteralCommandNode;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
+import dev.swiftconnect.config.*;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.slf4j.Logger;
 
 import com.google.inject.Inject;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.*;
 
 @Plugin(
         id = "swiftconnect",
@@ -25,42 +30,139 @@ import com.google.inject.Inject;
 )
 public class SwiftConnect {
 
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+
     private final ProxyServer server;
     private final Logger logger;
+    private final Path dataDirectory;
+    private ConfigManager configManager;
 
     @Inject
-    public SwiftConnect(ProxyServer server, Logger logger) {
+    public SwiftConnect(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
         this.server = server;
         this.logger = logger;
+        this.dataDirectory = dataDirectory;
     }
 
     @Subscribe
     public void onProxyInitialize(ProxyInitializeEvent event) {
-        int count = 0;
+        configManager = new ConfigManager(dataDirectory);
+        SwiftConfig config;
 
-        for (RegisteredServer registeredServer : server.getAllServers()) {
-            String serverName = registeredServer.getServerInfo().getName();
-            registerServerAlias(serverName, registeredServer);
+        try {
+            config = configManager.load();
+        } catch (IOException e) {
+            logger.error("Failed to load config.yml", e);
+            return;
+        }
+
+        if (config == null) {
+            config = generateDefaultConfig();
+            try {
+                configManager.save(config);
+                logger.info("Generated default config.yml with {} detected server(s).", config.getMacros().size());
+            } catch (IOException e) {
+                logger.error("Failed to save config.yml", e);
+                return;
+            }
+        }
+
+        int count = 0;
+        for (Map.Entry<String, MacroEntry> entry : config.getMacros().entrySet()) {
+            String name = entry.getKey();
+            MacroEntry macro = entry.getValue();
+            registerMacro(name, macro);
             count++;
         }
 
-        logger.info("SwiftConnect loaded! Registered {} server alias(es).", count);
+        logger.info("SwiftConnect loaded! Registered {} macro command(s).", count);
     }
 
-    private void registerServerAlias(String serverName, RegisteredServer targetServer) {
+    private SwiftConfig generateDefaultConfig() {
+        SwiftConfig config = new SwiftConfig();
+        config.setLang("en_US");
+
+        Map<String, MacroEntry> macros = new LinkedHashMap<>();
+        for (RegisteredServer registeredServer : server.getAllServers()) {
+            String name = registeredServer.getServerInfo().getName();
+            String lower = name.toLowerCase();
+
+            MacroEntry macro = new MacroEntry();
+            macro.setDescription("Transfer player to " + lower + ".");
+            macro.setPermission("");
+            macro.setAliases(new ArrayList<>());
+
+            MacroAction action = new MacroAction();
+            action.setType("transfer");
+            Map<String, String> options = new LinkedHashMap<>();
+            options.put("target", lower);
+            options.put("message", "§7⏳ Initializing connection to §f" + capitalize(name) + "§7...");
+            action.setOptions(options);
+            macro.setActions(List.of(action));
+
+            macros.put(lower, macro);
+        }
+
+        config.setMacros(macros);
+        return config;
+    }
+
+    private void registerMacro(String name, MacroEntry macro) {
+        // Register the main command
+        registerCommand(name, macro);
+
+        // Register aliases
+        for (String alias : macro.getAliases()) {
+            registerCommand(alias.toLowerCase(), macro);
+            logger.info("Registered alias /{} -> /{}", alias.toLowerCase(), name);
+        }
+    }
+
+    private void registerCommand(String commandName, MacroEntry macro) {
         LiteralCommandNode<CommandSource> node = LiteralArgumentBuilder
-                .<CommandSource>literal(serverName.toLowerCase())
-                .requires(source -> source instanceof Player)
+                .<CommandSource>literal(commandName)
+                .requires(source -> {
+                    if (!(source instanceof Player)) return false;
+                    String perm = macro.getPermission();
+                    return perm == null || perm.isEmpty() || source.hasPermission(perm);
+                })
                 .executes(context -> {
                     Player player = (Player) context.getSource();
-                    player.sendMessage(Component.text("Connecting to " + serverName + "...", NamedTextColor.GREEN));
-                    player.createConnectionRequest(targetServer).fireAndForget();
+                    executeMacro(player, macro);
                     return 1;
                 })
                 .build();
 
         BrigadierCommand command = new BrigadierCommand(node);
         server.getCommandManager().register(command);
-        logger.info("Registered alias /{} -> /server {}", serverName.toLowerCase(), serverName);
+        logger.info("Registered command /{}", commandName);
+    }
+
+    private void executeMacro(Player player, MacroEntry macro) {
+        for (MacroAction action : macro.getActions()) {
+            if ("transfer".equalsIgnoreCase(action.getType())) {
+                String target = action.getOptions().get("target");
+                String message = action.getOptions().get("message");
+
+                if (target == null) continue;
+
+                Optional<RegisteredServer> targetServer = server.getServer(target);
+                if (targetServer.isEmpty()) {
+                    player.sendMessage(LEGACY.deserialize("§cServer §f" + target + " §cis not available."));
+                    return;
+                }
+
+                if (message != null && !message.isEmpty()) {
+                    player.sendMessage(LEGACY.deserialize(message));
+                }
+
+                player.createConnectionRequest(targetServer.get()).fireAndForget();
+            }
+        }
+    }
+
+    private static String capitalize(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
     }
 }
