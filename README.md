@@ -1,8 +1,6 @@
 # SwiftConnect
 
-A lightweight Velocity proxy plugin that automatically creates command aliases for all your registered servers — with a fully configurable YAML config.
-
-Instead of typing `/server skyblock`, just type `/skyblock`. That's it.
+Lightweight velocity plugin that adds an alias so that instead of typing `/server skyblock`, just enter `/skyblock`.
 
 ## Tested Versions
 
