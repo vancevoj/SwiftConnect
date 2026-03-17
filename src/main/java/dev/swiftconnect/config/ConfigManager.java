@@ -5,6 +5,7 @@ import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.LoaderOptions;
+import org.yaml.snakeyaml.nodes.Tag;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -25,6 +26,7 @@ public class ConfigManager {
         }
         try (Reader reader = Files.newBufferedReader(configPath)) {
             LoaderOptions loaderOptions = new LoaderOptions();
+            loaderOptions.setTagInspector(tag -> tag.getClassName().startsWith("dev.swiftconnect.config."));
             Constructor constructor = new Constructor(SwiftConfig.class, loaderOptions);
             Yaml yaml = new Yaml(constructor);
             config = yaml.load(reader);
@@ -44,6 +46,9 @@ public class ConfigManager {
         dumperOptions.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
 
         Representer representer = new Representer(dumperOptions);
+        representer.addClassTag(SwiftConfig.class, Tag.MAP);
+        representer.addClassTag(MacroEntry.class, Tag.MAP);
+        representer.addClassTag(MacroAction.class, Tag.MAP);
         representer.getPropertyUtils().setSkipMissingProperties(true);
 
         Yaml yaml = new Yaml(representer, dumperOptions);
