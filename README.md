@@ -4,15 +4,7 @@ A lightweight Velocity proxy plugin that automatically creates command aliases f
 
 Instead of typing `/server skyblock`, just type `/skyblock`. That's it.
 
-## Features
-
-- **Auto-detection** — on first run, detects all servers from `velocity.toml` and generates a `config.yml`
-- **Configurable messages** — customize the transfer message for each server with `§` color codes
-- **Aliases** — add shortcut aliases like `/sb` for `/skyblock`, `/h` for `/hub`
-- **Permissions** — optionally lock commands behind permissions
-- **Lightweight** — single JAR, no external dependencies
-
-## Compatibility
+## Tested Versions
 
 | Component | Version |
 |-----------|---------|
@@ -22,7 +14,7 @@ Instead of typing `/server skyblock`, just type `/skyblock`. That's it.
 
 ## Installation
 
-1. Download `SwiftConnect-1.0.0.jar` from [Releases](../../releases)
+1. Download `SwiftConnect` from [Releases](../../releases)
 2. Drop it into your Velocity proxy's `plugins/` folder
 3. Start Velocity and `plugins/swiftconnect/config.yml` will be automatically generated
 4. Edit the config to customize messages, aliases, and permissions
