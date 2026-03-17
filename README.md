@@ -16,7 +16,7 @@ Lightweight velocity plugin that adds an alias so that instead of typing `/serve
 2. Drop it into your Velocity proxy's `plugins/` folder
 3. Start Velocity and `plugins/swiftconnect/config.yml` will be automatically generated
 4. Edit the config to customize messages, aliases, and permissions
-5. Use `/swiftconnect reload` to apply changes without restarting
+5. Use `swiftconnect reload` in console to apply changes without restarting
 
 ## Auto-Generated Config
 
