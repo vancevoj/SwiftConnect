@@ -1,0 +1,1 @@
+{"id":"swiftconnect","name":"SwiftConnect","version":"1.0.0","description":"Automatically creates command aliases for all registered Velocity servers","authors":["SwiftConnect"],"dependencies":[],"main":"dev.swiftconnect.SwiftConnect"}
